@@ -1,8 +1,18 @@
 # microscrap/spi — Linux SPI / spidev bindings for ScrapyardIO
 
-PHP library that wraps the [**posi**](https://github.com/php-io-extensions/posi) extension with global helpers, enums, and data objects. Every helper delegates to a facade class under `Microscrap\Bindings\SPI`.
+> **Docs (production):** [ScrapyardIO · microscrap/spi 0.7.x](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview)
 
-This project provides PHP bindings to the Linux `spidev` character device API, mirroring the public surface of `<linux/spi/spidev.h>` (the `SPI_IOC_*` ioctl family used by `spi-tools`, Python's `spidev`, and friends).
+[![Docs](https://img.shields.io/badge/docs-ScrapyardIO-0ea5e9?logo=readthedocs&logoColor=white)](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview)
+[![Packagist Version](https://img.shields.io/packagist/v/microscrap/spi.svg?label=packagist)](https://packagist.org/packages/microscrap/spi)
+[![PHP Version Require](https://img.shields.io/packagist/php-v/microscrap/spi.svg)](https://packagist.org/packages/microscrap/spi)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Requires ext-posi](https://img.shields.io/badge/ext--posi-%5E0.7-777bb4?logo=php&logoColor=white)](https://github.com/php-io-extensions/posi)
+
+PHP library that wraps the [**posi**](https://github.com/php-io-extensions/posi) extension (`ext-posi`) with global helpers, enums, and data objects. Every helper delegates to `Microscrap\Bindings\SPI\Device`, which uses [`microscrap/posix`](https://github.com/microscrap/posix) for FD I/O and `ioctl`.
+
+This project provides PHP bindings to the Linux `spidev` character device API, mirroring the public surface of `<linux/spi/spidev.h>` (the `SPI_IOC_*` ioctl family).
+
+This is the **bindings** package — not the native extension. Ecosystem docs: [`0.7.x`](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview).
 
 ## Highlights
 
@@ -17,10 +27,10 @@ This project provides PHP bindings to the Linux `spidev` character device API, m
 
 ## Requirements
 
-* PHP 8.3+
+* PHP `^8.4|^8.5|^8.6`
 * Linux kernel with `spidev` enabled and a populated `/dev/spidev*` device
-* **ext-posi** ^0.4.0 — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); the `posi_mem_*` helpers are required for `spi_transfer` unless a native `spi_transfer(int $fd, …)` is loaded
-* **microscrap/posix** ^0.4.0
+* **ext-posi** `^0.7.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); the `posi_mem_*` helpers are required for `spi_transfer` unless a native `spi_transfer(int $fd, …)` is loaded
+* **microscrap/posix** `^0.7.0`
 
 ## Installation
 
@@ -36,19 +46,19 @@ Confirm the spidev device is visible (and that your user can access it, or run a
 ls /dev/spidev*
 ```
 
-On a Raspberry Pi, enable SPI via `raspi-config` or by adding `dtparam=spi=on` to `/boot/config.txt`.
+On a Raspberry Pi, enable SPI via `raspi-config` or by adding `dtparam=spi=on` to `/boot/config.txt` / `/boot/firmware/config.txt`.
 
 ```bash
-composer require microscrap/spi
+composer require microscrap/spi:^0.7.0
 ```
 
-Composer autoloads `src/Helpers/spi-device.php`, registering the global `spi_*` functions.
+Composer autoloads `src/Helpers/spi-device.php`, registering the global `spi_*` functions when the name is free (`function_exists` guard).
 
 ## Usage
 
 SPI transactions are driven through **global helper functions** (`spi_open`, `spi_read`, `spi_write`, `spi_transfer`, etc.). All helpers delegate to the `Device` facade and are only defined once (`function_exists` guard).
 
-Enums live under `Microscrap\Bindings\SPI\Enums`. The device handle is `Microscrap\Bindings\SPI\DataObjects\SPIDevice`, and a single transfer segment is described by `Microscrap\Bindings\SPI\DataObjects\SPITransfer`.
+Enums live under `Microscrap\Bindings\SPI\Enums` — cases are **FULLY UPPERCASE**. The device handle is `Microscrap\Bindings\SPI\DataObjects\SPIDevice`, and a single transfer segment is described by `Microscrap\Bindings\SPI\DataObjects\SPITransfer`.
 
 ---
 
@@ -62,7 +72,7 @@ use Microscrap\Bindings\SPI\Enums\SPIMode;
 
 // Open spidev0.0 at 500 kHz, mode 1 (CPHA=1, CPOL=0), 8 bits/word.
 $dev = spi_open('/dev/spidev0.0', SPIMode::CPHA->value, 500_000, 8);
-if ($dev === null) {
+if (is_null($dev)) {
     exit("Failed to open SPI device\n");
 }
 
@@ -110,8 +120,6 @@ printf("JEDEC ID: %s\n", strtoupper(bin2hex(substr($rx, 1))));
 
 spi_close($dev);
 ```
-
-See `examples/as3935-autotune.php` for a complete AS3935 antenna-autotune script that combines `spi_transfer`, GPIO edge events, and kernel hardware timestamps.
 
 ---
 
@@ -204,7 +212,7 @@ Notes:
 
 ## Enums
 
-All enums are `int`-backed with `SCREAMING_SNAKE_CASE` cases that map directly to kernel constants.
+All enums are `int`-backed with **FULLY UPPERCASE** cases that map directly to kernel constants.
 
 ### `SPIMode` — `mode` bitmask (`SPI_IOC_WR_MODE32`)
 
