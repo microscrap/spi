@@ -15,7 +15,8 @@ class Device
         int $speed = 500_000,
         int $bitsPerWord = 8
     ): ?SPIDevice {
-        $fd = posix_open($path, FileControlFlag::O_RDWR->value);
+        // close-on-exec: pool workers and other children open their own device, never inherit this one
+        $fd = posix_open($path, FileControlFlag::O_RDWR->value | FileControlFlag::O_CLOEXEC->value);
         if ($fd < 0) {
             return null;
         }
@@ -113,9 +114,8 @@ class Device
             }
         }
 
-        // Posi\Memory path: packs a spi_ioc_transfer struct per segment and
-        // issues SPI_IOC_MESSAGE(1) via ioctl. Works with ext-posi only —
-        // no legacy SPI extension required.
+        // Posi\Memory path: every segment in one SPI_IOC_MESSAGE(N) via ioctl.
+        // Works with ext-posi only — no legacy SPI extension required.
         if (function_exists('posi_mem_alloc')) {
             return self::spiTransferViaPosi($dev, ...$transfers);
         }
@@ -123,24 +123,34 @@ class Device
         return false;
     }
 
+    /**
+     * Posi\Memory path: packs one spi_ioc_transfer struct per segment and sends them all as one SPI_IOC_MESSAGE(N),
+     * so chip select stays asserted from the first segment to the last (unless a segment's csChange says otherwise).
+     * A zero-length segment carries no buffers; on its own it is a message that only moves chip select.
+     */
     private static function spiTransferViaPosi(SPIDevice $dev, SPITransfer ...$transfers): string|false
     {
-        $chunks = [];
+        $structs = '';
+        $buffers = [];
 
         foreach ($transfers as $transfer) {
             $len = $transfer->len;
-            $tx  = substr(str_pad($transfer->tx, $len, "\0"), 0, $len);
+            $txPtr = 0;
+            $rxPtr = 0;
 
-            $txPtr = posi_mem_alloc($len);
-            $rxPtr = posi_mem_alloc($len);
+            if ($len > 0) {
+                $txPtr = posi_mem_alloc($len);
+                $rxPtr = posi_mem_alloc($len);
+                posi_mem_write($txPtr, substr(str_pad($transfer->tx, $len, "\0"), 0, $len));
+            }
 
-            posi_mem_write($txPtr, $tx);
+            $buffers[] = [$txPtr, $rxPtr, $len];
 
             // spi_ioc_transfer layout (32 bytes, 64-bit Linux):
             //   tx_buf(Q) rx_buf(Q) len(V) speed_hz(V) delay_usecs(v)
             //   bits_per_word(C) cs_change(C) tx_nbits(C) rx_nbits(C)
             //   word_delay_usecs(C) pad(C)
-            $struct = pack(
+            $structs .= pack(
                 'QQVVvCCCCCC',
                 $txPtr,
                 $rxPtr,
@@ -154,23 +164,27 @@ class Device
                 $transfer->wordDelayUsecs,
                 0
             );
+        }
 
-            $unused = null;
-            $ret = ioctl($dev->fd, SPIOpCode::messageN(1), ['data' => $struct], $unused);
+        $unused = null;
+        $ret = ioctl($dev->fd, SPIOpCode::messageN(count($transfers)), ['data' => $structs], $unused);
 
-            if ($ret < 0) {
-                posi_mem_free($txPtr);
-                posi_mem_free($rxPtr);
-                return false;
+        $rx = '';
+
+        foreach ($buffers as [$txPtr, $rxPtr, $len]) {
+            if ($len === 0) {
+                continue;
             }
 
-            $chunks[] = posi_mem_read($rxPtr, $len);
+            if ($ret >= 0) {
+                $rx .= posi_mem_read($rxPtr, $len);
+            }
 
             posi_mem_free($txPtr);
             posi_mem_free($rxPtr);
         }
 
-        return implode('', $chunks);
+        return $ret < 0 ? false : $rx;
     }
 
     private static function spiIoctlReadByte(int $fd, SPIOpCode $op): int

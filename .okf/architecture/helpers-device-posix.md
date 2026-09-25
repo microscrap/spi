@@ -65,7 +65,7 @@ Each function is wrapped in `if (! function_exists(...))` so a prior definition 
 
 # `spi_transfer` paths
 
-`Device::spiTransfer` prefers a **native** `spi_transfer(int $fd, …)` when Reflection shows the first parameter is `int` (avoids recursing into this package’s procedural helper, which takes `SPIDevice`). Otherwise it uses the **ext-posi** memory path (`posi_mem_*` + per-segment `SPI_IOC_MESSAGE(1)`). If neither path is available, it returns `false`.[^device][^readme]
+`Device::spiTransfer` prefers a **native** `spi_transfer(int $fd, …)` when Reflection shows the first parameter is `int` (avoids recursing into this package’s procedural helper, which takes `SPIDevice`). Otherwise it uses the **ext-posi** memory path (`posi_mem_*` + one `SPI_IOC_MESSAGE(N)` for every segment). If neither path is available, it returns `false`.[^device][^readme]
 
 See [Native `spi_transfer` vs `posi_mem`](../traps/spi-transfer-native-vs-posi-mem.md).
 

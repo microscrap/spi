@@ -29,8 +29,8 @@ This is the **bindings** package — not the native extension. Ecosystem docs: [
 
 * PHP `^8.4|^8.5|^8.6`
 * Linux kernel with `spidev` enabled and a populated `/dev/spidev*` device
-* **ext-posi** `^0.7.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); the `posi_mem_*` helpers are required for `spi_transfer` unless a native `spi_transfer(int $fd, …)` is loaded
-* **microscrap/posix** `^0.7.0`
+* **ext-posi** `^0.9.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); the `posi_mem_*` helpers are required for `spi_transfer` unless a native `spi_transfer(int $fd, …)` is loaded
+* **microscrap/posix** `^0.9.0`
 
 ## Installation
 
@@ -49,7 +49,7 @@ ls /dev/spidev*
 On a Raspberry Pi, enable SPI via `raspi-config` or by adding `dtparam=spi=on` to `/boot/config.txt` / `/boot/firmware/config.txt`.
 
 ```bash
-composer require microscrap/spi:^0.7.0
+composer require microscrap/spi:^0.9.0
 ```
 
 Composer autoloads `src/Helpers/spi-device.php`, registering the global `spi_*` functions when the name is free (`function_exists` guard).
@@ -161,7 +161,7 @@ Issues a single `SPI_IOC_MESSAGE(n)` ioctl bundling `n` transfer segments. CS is
 Two paths are supported transparently:
 
 1. **Native fast path** — if a low-level extension exposes `spi_transfer(int $fd, …)` (note the `int` first argument), it is used directly.
-2. **`ext-posi` fallback** — otherwise the call packs each `spi_ioc_transfer` struct manually using `posi_mem_alloc` / `posi_mem_write` / `posi_mem_read` and issues `SPI_IOC_MESSAGE(1)` per segment. This is the supported path for plain `ext-posi` installations.
+2. **`ext-posi` fallback** — otherwise the call packs each `spi_ioc_transfer` struct manually using `posi_mem_alloc` / `posi_mem_write` / `posi_mem_read` and issues one `SPI_IOC_MESSAGE(N)` for all segments, so chip select stays asserted across them. A zero-length segment is allowed and moves chip select only. This is the supported path for plain `ext-posi` installations.
 
 If neither path is available, `spi_transfer` returns `false`.
 

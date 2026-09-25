@@ -1,3 +1,7 @@
+## 2026-09-24
+* **Fix**: the posi path sends every segment in one `SPI_IOC_MESSAGE(N)`; it used to send one message per segment, dropping chip select between them. Zero-length segments allowed. `spi_open` opens with `O_CLOEXEC`. [Native vs posi_mem](/traps/spi-transfer-native-vs-posi-mem.md) updated.
+* **Update**: relabeled 0.8.0 → 0.9.0 with `ext-posi` / `microscrap/posix` ^0.9.0. No code change.
+
 ## 2026-09-14
 * **Update**: relabeled 0.7.0 → 0.8.0 with `ext-posi` / `ext-ftdi` 0.8.0. No code change.
 

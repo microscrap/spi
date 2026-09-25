@@ -30,7 +30,7 @@ sources:
 `Device::spiTransfer` has two supported paths:[^device][^readme]
 
 1. **Native fast path** — if `function_exists('spi_transfer')` and Reflection shows the first parameter type is **`int`**, call `\spi_transfer($dev->fd, $transfers)`. That signature belongs to a low-level extension, not this package’s helper.
-2. **`ext-posi` fallback** — if `posi_mem_alloc` exists, pack each `spi_ioc_transfer` and issue `SPI_IOC_MESSAGE(1)` per segment via `ioctl`.
+2. **`ext-posi` fallback** — if `posi_mem_alloc` exists, pack every `spi_ioc_transfer` and issue one `SPI_IOC_MESSAGE(N)` via `ioctl`. Chip select stays asserted across the segments; `csChange` on the last one keeps it asserted after the message. A zero-length segment is allowed. Before 2026-09-24 each segment went out as its own `SPI_IOC_MESSAGE(1)`, so chip select dropped between segments.
 3. Otherwise return `false`.
 
 This package’s procedural helper is `spi_transfer(SPIDevice $dev, …)`. Calling that from `Device` without the int-type check would **recurse** back into `Device::spiTransfer`.[^helpers][^device]
