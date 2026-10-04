@@ -1,7 +1,7 @@
 ---
 type: Architecture
 title: "Helpers → Device → posix"
-description: "Global spi_* helpers call Device; Device uses posix_open/read/write/close/ioctl and posi_mem_*; native spi_transfer(int) fast path optional."
+description: "Global spi_* helpers call Device; Device uses ext-posi posix_open/read/write/close/ioctl and posi_mem_*; native spi_transfer(int) fast path optional."
 resource: src/Device.php
 tags: [architecture, bindings, spi, helpers, posix, posi]
 generated: { by: "okf-documentation-generator/cursor", at: "2026-08-10T22:04:00Z" }
@@ -15,7 +15,7 @@ sources:
     title: Device facade; posix and transfer paths
   - id: composer
     resource: composer.json
-    title: Autoload files list; require posix + ext-posi
+    title: Autoload files list; require ext-posi
   - id: readme
     resource: README.md
     title: Helper API and transfer path notes
@@ -31,19 +31,17 @@ app / peers / tests
     │
     └─ spi_open / spi_read / spi_write / spi_transfer / …
             └─► Device::spi*                    # this package
-                    ├─ posix_open / posix_read / posix_write / posix_close / ioctl
-                    │       └─► microscrap/posix → Posi\System (ext-posi)
+                    ├─ posix_open / posix_read / posix_write / posix_close / ioctl   # ext-posi functions
                     │
                     └─ spi_transfer paths
                             ├─ native spi_transfer(int $fd, …)   # optional low-level ext
-                            └─ posi_mem_alloc / write / read / free + ioctl(SPI_IOC_MESSAGE)
-                                    └─► Posi\Memory (ext-posi)
+                            └─ posi_mem_alloc / write / read / free + ioctl(SPI_IOC_MESSAGE)   # ext-posi functions
 ```
 
 Rules:[^agents][^readme][^helpers][^device]
 
 1. Global helpers call `Microscrap\Bindings\SPI\Device` only.
-2. `Device` uses posix helpers (`posix_open`, `posix_read`, `posix_write`, `posix_close`, `ioctl`, `posi_mem_*`) — do not invent parallel APIs.
+2. `Device` uses the native ext-posi functions (`posix_open`, `posix_read`, `posix_write`, `posix_close`, `ioctl`, `posi_mem_*`) — do not invent parallel APIs.
 3. Keep 1:1 coverage with helpers already in `src/Helpers/spi-device.php`.
 
 # Autoload
@@ -54,7 +52,7 @@ Composer `autoload.files` registers:[^composer]
 
 Each function is wrapped in `if (! function_exists(...))` so a prior definition wins.[^helpers]
 
-# Helper groups (0.7 surface)
+# Helper groups (0.10 surface)
 
 | Group | Examples | Device / lower target |
 |-------|----------|------------------------|
@@ -65,7 +63,7 @@ Each function is wrapped in `if (! function_exists(...))` so a prior definition 
 
 # `spi_transfer` paths
 
-`Device::spiTransfer` prefers a **native** `spi_transfer(int $fd, …)` when Reflection shows the first parameter is `int` (avoids recursing into this package’s procedural helper, which takes `SPIDevice`). Otherwise it uses the **ext-posi** memory path (`posi_mem_*` + one `SPI_IOC_MESSAGE(N)` for every segment). If neither path is available, it returns `false`.[^device][^readme]
+`Device::spiTransfer` prefers a **native** `spi_transfer(int $fd, …)` when Reflection shows the first parameter is `int` (avoids recursing into this package’s procedural helper, which takes `SPIDevice`). Otherwise it uses the **ext-posi** `posi_mem_*` path (one `SPI_IOC_MESSAGE(N)` for every segment); `posi_mem_*` always exists because `ext-posi` is required. `false` means the transfer failed.[^device][^readme]
 
 See [Native `spi_transfer` vs `posi_mem`](../traps/spi-transfer-native-vs-posi-mem.md).
 
@@ -82,6 +80,6 @@ See [Native `spi_transfer` vs `posi_mem`](../traps/spi-transfer-native-vs-posi-m
 
 [^helpers]: Helper file delegating to Device
 [^device]: Device facade; posix and transfer paths
-[^composer]: Autoload files list; require posix + ext-posi
+[^composer]: Autoload files list; require ext-posi
 [^readme]: Helper API and transfer path notes
 [^agents]: Helpers → Device → posix only

@@ -2,7 +2,6 @@
 
 namespace Microscrap\Bindings\SPI;
 
-use Microscrap\Bindings\POSIX\Enums\FileControlFlag;
 use Microscrap\Bindings\SPI\DataObjects\SPIDevice;
 use Microscrap\Bindings\SPI\DataObjects\SPITransfer;
 use Microscrap\Bindings\SPI\Enums\SPIOpCode;
@@ -16,7 +15,7 @@ class Device
         int $bitsPerWord = 8
     ): ?SPIDevice {
         // close-on-exec: pool workers and other children open their own device, never inherit this one
-        $fd = posix_open($path, FileControlFlag::O_RDWR->value | FileControlFlag::O_CLOEXEC->value);
+        $fd = posix_open($path, O_RDWR | O_CLOEXEC);
         if ($fd < 0) {
             return null;
         }
@@ -114,17 +113,12 @@ class Device
             }
         }
 
-        // Posi\Memory path: every segment in one SPI_IOC_MESSAGE(N) via ioctl.
-        // Works with ext-posi only — no legacy SPI extension required.
-        if (function_exists('posi_mem_alloc')) {
-            return self::spiTransferViaPosi($dev, ...$transfers);
-        }
-
-        return false;
+        // posi_mem_* path: every segment in one SPI_IOC_MESSAGE(N) via ioctl.
+        return self::spiTransferViaPosi($dev, ...$transfers);
     }
 
     /**
-     * Posi\Memory path: packs one spi_ioc_transfer struct per segment and sends them all as one SPI_IOC_MESSAGE(N),
+     * posi_mem_* path: packs one spi_ioc_transfer struct per segment and sends them all as one SPI_IOC_MESSAGE(N),
      * so chip select stays asserted from the first segment to the last (unless a segment's csChange says otherwise).
      * A zero-length segment carries no buffers; on its own it is a message that only moves chip select.
      */

@@ -1,36 +1,35 @@
 # microscrap/spi — Linux SPI / spidev bindings for ScrapyardIO
 
-> **Docs (production):** [ScrapyardIO · microscrap/spi 0.7.x](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview)
+> **Docs (production):** [ScrapyardIO · microscrap/spi 0.10.x](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview)
 
-[![Docs](https://img.shields.io/badge/docs-ScrapyardIO-0ea5e9?logo=readthedocs&logoColor=white)](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview)
+[![Docs](https://img.shields.io/badge/docs-ScrapyardIO-0ea5e9?logo=readthedocs&logoColor=white)](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview)
 [![Packagist Version](https://img.shields.io/packagist/v/microscrap/spi.svg?label=packagist)](https://packagist.org/packages/microscrap/spi)
 [![PHP Version Require](https://img.shields.io/packagist/php-v/microscrap/spi.svg)](https://packagist.org/packages/microscrap/spi)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Requires ext-posi](https://img.shields.io/badge/ext--posi-%5E0.7-777bb4?logo=php&logoColor=white)](https://github.com/php-io-extensions/posi)
+[![Requires ext-posi](https://img.shields.io/badge/ext--posi-%5E0.10-777bb4?logo=php&logoColor=white)](https://github.com/php-io-extensions/posi)
 
-PHP library that wraps the [**posi**](https://github.com/php-io-extensions/posi) extension (`ext-posi`) with global helpers, enums, and data objects. Every helper delegates to `Microscrap\Bindings\SPI\Device`, which uses [`microscrap/posix`](https://github.com/microscrap/posix) for FD I/O and `ioctl`.
+PHP library that wraps the [**posi**](https://github.com/php-io-extensions/posi) extension (`ext-posi`) with global helpers, enums, and data objects. Every helper delegates to `Microscrap\Bindings\SPI\Device`, which calls the native `posix_*` functions and `ioctl` that `ext-posi` registers for FD I/O.
 
 This project provides PHP bindings to the Linux `spidev` character device API, mirroring the public surface of `<linux/spi/spidev.h>` (the `SPI_IOC_*` ioctl family).
 
-This is the **bindings** package — not the native extension. Ecosystem docs: [`0.7.x`](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.7.x/overview).
+This is the **bindings** package — not the native extension. Ecosystem docs: [`0.10.x`](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview).
 
 ## Highlights
 
 * Open a spidev device (`/dev/spidev0.0`, `/dev/spidev1.1`, etc.) and configure mode, clock speed, and word size in one call
-* Half-duplex byte I/O via `spi_read` / `spi_write` (uses `posix_read` / `posix_write` under the hood)
+* Half-duplex byte I/O via `spi_read` / `spi_write` (uses `posix_read` / `posix_write` from `ext-posi` under the hood)
 * Full-duplex, chained transfers via `spi_transfer` and the `SPITransfer` data object — packs `spi_ioc_transfer` and issues `SPI_IOC_MESSAGE(n)`
 * Per-segment overrides: clock speed, bits-per-word, inter-word delay, CS-change, dual/quad lane counts
 * Inspect and mutate every spidev attribute — `mode`, `max_speed_hz`, `bits_per_word`, `lsb_first`
 * Typed `SPIMode` bitmask covers CPOL/CPHA, CS polarity, 3-wire, loopback, no-CS, dual/quad/octal lanes, ready signal
-* Automatically prefers a native `spi_transfer(int $fd, …)` from a low-level extension when one is loaded, otherwise falls back to the `ext-posi` memory path
+* Automatically prefers a native `spi_transfer(int $fd, …)` from a low-level extension when one is loaded, otherwise falls back to the `posi_mem_*` path
 * Thin global `spi_*` helper API — all functions are `function_exists`-guarded
 
 ## Requirements
 
 * PHP `^8.4|^8.5|^8.6`
 * Linux kernel with `spidev` enabled and a populated `/dev/spidev*` device
-* **ext-posi** `^0.9.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); the `posi_mem_*` helpers are required for `spi_transfer` unless a native `spi_transfer(int $fd, …)` is loaded
-* **microscrap/posix** `^0.9.0`
+* **ext-posi** `^0.10.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); it provides the `posix_*`, `ioctl` and `posi_mem_*` functions this package calls
 
 ## Installation
 
@@ -49,7 +48,7 @@ ls /dev/spidev*
 On a Raspberry Pi, enable SPI via `raspi-config` or by adding `dtparam=spi=on` to `/boot/config.txt` / `/boot/firmware/config.txt`.
 
 ```bash
-composer require microscrap/spi:^0.9.0
+composer require microscrap/spi:^0.10.0
 ```
 
 Composer autoloads `src/Helpers/spi-device.php`, registering the global `spi_*` functions when the name is free (`function_exists` guard).
@@ -161,9 +160,7 @@ Issues a single `SPI_IOC_MESSAGE(n)` ioctl bundling `n` transfer segments. CS is
 Two paths are supported transparently:
 
 1. **Native fast path** — if a low-level extension exposes `spi_transfer(int $fd, …)` (note the `int` first argument), it is used directly.
-2. **`ext-posi` fallback** — otherwise the call packs each `spi_ioc_transfer` struct manually using `posi_mem_alloc` / `posi_mem_write` / `posi_mem_read` and issues one `SPI_IOC_MESSAGE(N)` for all segments, so chip select stays asserted across them. A zero-length segment is allowed and moves chip select only. This is the supported path for plain `ext-posi` installations.
-
-If neither path is available, `spi_transfer` returns `false`.
+2. **`posi_mem_*` path** — otherwise the call packs each `spi_ioc_transfer` struct manually using `posi_mem_alloc` / `posi_mem_write` / `posi_mem_read` and issues one `SPI_IOC_MESSAGE(N)` for all segments, so chip select stays asserted across them. A zero-length segment is allowed and moves chip select only. This is the path for plain `ext-posi` installations; `posi_mem_*` always exists because `ext-posi` is required.
 
 ---
 

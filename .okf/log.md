@@ -1,3 +1,6 @@
+## 2026-10-03
+* **Update**: ported to 0.10.0 against `ext-posi` ^0.10.0, a C rewrite where `posix_*`, `ioctl`, `posi_mem_*` are native global functions. `microscrap/posix` is gone from `require`; `spi_open` opens with the `O_RDWR | O_CLOEXEC` constants the extension registers. The `posi_mem_*` transfer path lost its `function_exists` guard. Docs URLs now `0.10.x`; suggest is `scrapyard-io/framework` ^0.10.0.
+
 ## 2026-09-24
 * **Fix**: the posi path sends every segment in one `SPI_IOC_MESSAGE(N)`; it used to send one message per segment, dropping chip select between them. Zero-length segments allowed. `spi_open` opens with `O_CLOEXEC`. [Native vs posi_mem](/traps/spi-transfer-native-vs-posi-mem.md) updated.
 * **Update**: relabeled 0.8.0 → 0.9.0 with `ext-posi` / `microscrap/posix` ^0.9.0. No code change.

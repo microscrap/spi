@@ -32,7 +32,7 @@ Linux `<linux/spi/spidev.h>` exposes mode bitmasks and `SPI_IOC_*` ioctl request
 - No class-level constants in `src/` — prefer enums.[^agents]
 - Pass `->value` (or a raw `int`) into helpers; helpers take integers / data objects, not enum objects for mode/speed args.[^readme]
 
-# Enum inventory (0.7.0)
+# Enum inventory (0.10.0)
 
 | Enum | Purpose | Cases (summary) |
 |------|---------|-----------------|

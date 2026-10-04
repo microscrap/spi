@@ -4,11 +4,11 @@
 
 ## Role
 
-Bindings-only Composer package over **ext-posi** + **microscrap/posix** for Linux `spidev`. Global helpers, enums, and data objects. No ServiceProvider, no Chassis/Core coupling.
+Bindings-only Composer package over **ext-posi** for Linux `spidev`. Global helpers, enums, and data objects. No ServiceProvider, no Chassis/Core coupling.
 
 ## Rules
 
-* Helpers call `Microscrap\Bindings\SPI\Device` only; `Device` uses posix helpers (`posix_open`, `posix_read`, `posix_write`, `posix_close`, `ioctl`, `posi_mem_*`) — do not invent parallel APIs.
+* Helpers call `Microscrap\Bindings\SPI\Device` only; `Device` uses the native `ext-posi` functions (`posix_open`, `posix_read`, `posix_write`, `posix_close`, `ioctl`, `posi_mem_*`) — do not invent parallel APIs.
 * Keep 1:1 coverage with helpers already in `src/Helpers/spi-device.php`; document drift in README / ecosystem docs.
 * Enums in `src/Enums/*` are int-backed with **FULLY UPPERCASE** cases.
 * Prefer `is_null($var)` over `$var === null`.

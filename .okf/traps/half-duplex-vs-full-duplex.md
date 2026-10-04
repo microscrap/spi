@@ -24,7 +24,7 @@ Register reads or JEDEC-style transactions look wrong: MISO bytes do not line up
 
 # Cause
 
-`spi_read` / `spi_write` go through `posix_read` / `posix_write` on the spidev FD — the kernel’s **half-duplex** path (dummy bytes out on read; MISO ignored on write).[^device][^readme]
+`spi_read` / `spi_write` go through ext-posi's `posix_read` / `posix_write` on the spidev FD — the kernel’s **half-duplex** path (dummy bytes out on read; MISO ignored on write).[^device][^readme]
 
 True **full-duplex** (byte-for-byte correspondence between TX and RX) requires `spi_transfer` with one or more `SPITransfer` segments (`SPI_IOC_MESSAGE`).[^readme]
 
@@ -37,7 +37,7 @@ True **full-duplex** (byte-for-byte correspondence between TX and RX) requires `
 # Related
 
 * [Helpers → Device → posix](../architecture/helpers-device-posix.md)
-* [Package (0.7)](../orientation/package.md)
+* [Package (0.10)](../orientation/package.md)
 
 [^readme]: Half-duplex vs full-duplex notes
 [^device]: spiRead/spiWrite vs spiTransfer
