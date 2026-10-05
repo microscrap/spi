@@ -194,6 +194,7 @@ final readonly class SPITransfer {
         public int    $txNbits        = 0,  // 1 / 2 / 4 / 8 — dual/quad/octal MOSI
         public int    $rxNbits        = 0,  // 1 / 2 / 4 / 8 — dual/quad/octal MISO
         public int    $wordDelayUsecs = 0,  // microseconds between words
+        public int    $txAddress      = 0,  // when not 0, tx_buf points here: $len bytes read by the kernel, no copy
     ) {}
 }
 ```
@@ -203,6 +204,7 @@ Notes:
 * `$tx` is right-padded with NUL bytes if shorter than `$len`, and truncated if longer.
 * For read-only segments pass `tx: str_repeat("\0", $len)` (or any dummy bytes — the slave ignores them on a pure read).
 * `csChange` semantics are inverted from intuition: setting it `true` requests CS **de-assert** after this segment, which is what you want for "this is the last byte of a logical message" inside a chain.
+* A non-zero `txAddress` points `tx_buf` straight at that memory (an ext-fb framebuffer's `pointer()`, say): `$tx` is ignored, nothing is copied, and the segment's rx is discarded, adding nothing to what `spi_transfer()` returns. The address is trusted to hold `$len` readable bytes. `Device::spiTransferStructs()` packs the `spi_ioc_transfer` structs on its own.
 * The dual/quad/octal lane fields require a controller and slave that support [SPI multi-IO](https://www.kernel.org/doc/Documentation/spi/spidev.rst); leave them at `0` for standard single-MOSI/MISO operation.
 
 ---

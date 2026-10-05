@@ -120,9 +120,38 @@ class Device
     /**
      * posi_mem_* path: packs one spi_ioc_transfer struct per segment and sends them all as one SPI_IOC_MESSAGE(N),
      * so chip select stays asserted from the first segment to the last (unless a segment's csChange says otherwise).
-     * A zero-length segment carries no buffers; on its own it is a message that only moves chip select.
+     * A zero-length segment carries no buffers; on its own it is a message that only moves chip select. A transfer
+     * with a txAddress adds nothing to the rx returned.
      */
     private static function spiTransferViaPosi(SPIDevice $dev, SPITransfer ...$transfers): string|false
+    {
+        [$structs, $buffers] = self::spiTransferStructs(...$transfers);
+
+        $unused = null;
+        $ret = ioctl($dev->fd, SPIOpCode::messageN(count($transfers)), ['data' => $structs], $unused);
+
+        $rx = '';
+
+        foreach ($buffers as [$txPtr, $rxPtr, $len]) {
+            if ($ret >= 0) {
+                $rx .= posi_mem_read($rxPtr, $len);
+            }
+
+            posi_mem_free($txPtr);
+            posi_mem_free($rxPtr);
+        }
+
+        return $ret < 0 ? false : $rx;
+    }
+
+    /**
+     * One spi_ioc_transfer struct per transfer (32 bytes, 64-bit Linux) and the native buffers made for them, as
+     * [structs, list of [tx pointer, rx pointer, length]]. A transfer with a txAddress points tx_buf at it and gets
+     * no buffers: its rx is discarded. The caller frees every pointer listed.
+     *
+     * @return array{string, list<array{int, int, int}>}
+     */
+    public static function spiTransferStructs(SPITransfer ...$transfers): array
     {
         $structs = '';
         $buffers = [];
@@ -132,13 +161,14 @@ class Device
             $txPtr = 0;
             $rxPtr = 0;
 
-            if ($len > 0) {
+            if ($transfer->txAddress !== 0) {
+                $txPtr = $transfer->txAddress;
+            } elseif ($len > 0) {
                 $txPtr = posi_mem_alloc($len);
                 $rxPtr = posi_mem_alloc($len);
                 posi_mem_write($txPtr, substr(str_pad($transfer->tx, $len, "\0"), 0, $len));
+                $buffers[] = [$txPtr, $rxPtr, $len];
             }
-
-            $buffers[] = [$txPtr, $rxPtr, $len];
 
             // spi_ioc_transfer layout (32 bytes, 64-bit Linux):
             //   tx_buf(Q) rx_buf(Q) len(V) speed_hz(V) delay_usecs(v)
@@ -160,25 +190,7 @@ class Device
             );
         }
 
-        $unused = null;
-        $ret = ioctl($dev->fd, SPIOpCode::messageN(count($transfers)), ['data' => $structs], $unused);
-
-        $rx = '';
-
-        foreach ($buffers as [$txPtr, $rxPtr, $len]) {
-            if ($len === 0) {
-                continue;
-            }
-
-            if ($ret >= 0) {
-                $rx .= posi_mem_read($rxPtr, $len);
-            }
-
-            posi_mem_free($txPtr);
-            posi_mem_free($rxPtr);
-        }
-
-        return $ret < 0 ? false : $rx;
+        return [$structs, $buffers];
     }
 
     private static function spiIoctlReadByte(int $fd, SPIOpCode $op): int

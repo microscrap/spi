@@ -1,3 +1,6 @@
+## 2026-10-04
+* **Update**: `SPITransfer::$txAddress` points `tx_buf` at memory with no copy (rx discarded); `Device::spiTransferStructs()` packs the structs on its own. Pinned by `tests/TransferStructsTest.php`.
+
 ## 2026-10-03
 * **Update**: ported to 0.10.0 against `ext-posi` ^0.10.0, a C rewrite where `posix_*`, `ioctl`, `posi_mem_*` are native global functions. `microscrap/posix` is gone from `require`; `spi_open` opens with the `O_RDWR | O_CLOEXEC` constants the extension registers. The `posi_mem_*` transfer path lost its `function_exists` guard. Docs URLs now `0.10.x`; suggest is `scrapyard-io/framework` ^0.10.0.
 

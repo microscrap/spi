@@ -2,7 +2,7 @@
     "name": "microscrap/spi",
     "description": "Unix spidev Bindings for The PHP Posi Extension",
     "type": "library",
-    "version": "0.10.0",
+    "version": "0.10.1",
     "keywords": [
         "framework",
         "scrapyard-io",
