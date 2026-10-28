@@ -1,18 +1,18 @@
 # microscrap/spi — Linux SPI / spidev bindings for ScrapyardIO
 
-> **Docs (production):** [ScrapyardIO · microscrap/spi 0.10.x](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview)
+> **Docs (production):** [ScrapyardIO · microscrap/spi 0.11.x](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.11.x/overview)
 
-[![Docs](https://img.shields.io/badge/docs-ScrapyardIO-0ea5e9?logo=readthedocs&logoColor=white)](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview)
+[![Docs](https://img.shields.io/badge/docs-ScrapyardIO-0ea5e9?logo=readthedocs&logoColor=white)](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.11.x/overview)
 [![Packagist Version](https://img.shields.io/packagist/v/microscrap/spi.svg?label=packagist)](https://packagist.org/packages/microscrap/spi)
 [![PHP Version Require](https://img.shields.io/packagist/php-v/microscrap/spi.svg)](https://packagist.org/packages/microscrap/spi)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Requires ext-posi](https://img.shields.io/badge/ext--posi-%5E0.10-777bb4?logo=php&logoColor=white)](https://github.com/php-io-extensions/posi)
+[![Requires ext-posi](https://img.shields.io/badge/ext--posi-%5E0.11-777bb4?logo=php&logoColor=white)](https://github.com/php-io-extensions/posi)
 
 PHP library that wraps the [**posi**](https://github.com/php-io-extensions/posi) extension (`ext-posi`) with global helpers, enums, and data objects. Every helper delegates to `Microscrap\Bindings\SPI\Device`, which calls the native `posix_*` functions and `ioctl` that `ext-posi` registers for FD I/O.
 
 This project provides PHP bindings to the Linux `spidev` character device API, mirroring the public surface of `<linux/spi/spidev.h>` (the `SPI_IOC_*` ioctl family).
 
-This is the **bindings** package — not the native extension. Ecosystem docs: [`0.10.x`](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.10.x/overview).
+This is the **bindings** package — not the native extension. Ecosystem docs: [`0.11.x`](https://scrapyard-io.projectsaturnstudios.com/ecosystem/microscrap/spi/0.11.x/overview).
 
 ## Highlights
 
@@ -27,9 +27,9 @@ This is the **bindings** package — not the native extension. Ecosystem docs: [
 
 ## Requirements
 
-* PHP `^8.4|^8.5|^8.6`
+* PHP `~8.4.27||^8.5.12`
 * Linux kernel with `spidev` enabled and a populated `/dev/spidev*` device
-* **ext-posi** `^0.10.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); it provides the `posix_*`, `ioctl` and `posi_mem_*` functions this package calls
+* **ext-posi** `^0.11.0` — install from [php-io-extensions/posi](https://github.com/php-io-extensions/posi); it provides the `posix_*`, `ioctl` and `posi_mem_*` functions this package calls
 
 ## Installation
 
@@ -48,7 +48,7 @@ ls /dev/spidev*
 On a Raspberry Pi, enable SPI via `raspi-config` or by adding `dtparam=spi=on` to `/boot/config.txt` / `/boot/firmware/config.txt`.
 
 ```bash
-composer require microscrap/spi:^0.10.0
+composer require microscrap/spi:^0.11.0
 ```
 
 Composer autoloads `src/Helpers/spi-device.php`, registering the global `spi_*` functions when the name is free (`function_exists` guard).

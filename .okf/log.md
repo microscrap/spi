@@ -1,3 +1,7 @@
+## 2026-10-28
+
+* **Version**: 0.11.0 with the Venusian 0.11 ecosystem: `version` 0.11.0, `dev-main` → `0.11.x-dev`, `ext-posi` `^0.11.0`, PHP `~8.4.27||^8.5.12`, docs URLs `0.11.x`, `scrapyard-io/framework` `^0.11.0`. README, AGENTS and the bundle relabelled; CI installs `posi` `^0.11` where it has a workflow. No API change. 6 passed on Homebrew PHP 8.4 NTS and ZTS and on the Pi (8.4 ZTS).
+
 ## 2026-10-04
 * **Update**: `SPITransfer::$txAddress` points `tx_buf` at memory with no copy (rx discarded); `Device::spiTransferStructs()` packs the structs on its own. Pinned by `tests/TransferStructsTest.php`.
 

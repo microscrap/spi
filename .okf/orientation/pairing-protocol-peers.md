@@ -24,17 +24,17 @@ sources:
 
 | Concern | Package |
 |---------|---------|
-| POSIX FD / ioctl / memory primitives | `ext-posi` `^0.10.0` (**below** — required; registers `posix_*`, `ioctl`, `posi_mem_*`) |
+| POSIX FD / ioctl / memory primitives | `ext-posi` `^0.11.0` (**below** — required; registers `posix_*`, `ioctl`, `posi_mem_*`) |
 | SPI / spidev (this package) | `microscrap/spi` |
-| UART | `microscrap/uart` `^0.10` (peer) |
-| I2C | `microscrap/i2c` `^0.10` (peer) |
-| GPIO | `microscrap/gpio` `^0.10` (peer) |
+| UART | `microscrap/uart` `^0.11` (peer) |
+| I2C | `microscrap/i2c` `^0.11` (peer) |
+| GPIO | `microscrap/gpio` `^0.11` (peer) |
 | USB MPSSE / FTDI SPI path | `microscrap/ftdi` / `microscrap/mpsse` (**beside** — alternate SPI transport, not a spidev child) |
-| Higher GPIO orchestration | `scrapyard-io/framework` `^0.10.0` (**above**)[^composer] |
+| Higher GPIO orchestration | `scrapyard-io/framework` `^0.11.0` (**above**)[^composer] |
 
 # Typical flow
 
-1. Depend on this package (pulls **ext-posi** `^0.10.0`).
+1. Depend on this package (pulls **ext-posi** `^0.11.0`).
 2. Open `/dev/spidev*` via `spi_open` and transfer with `spi_transfer` / half-duplex helpers.
 3. Application / `scrapyard-io/framework` composes peers — do not invent framework providers inside this package.[^agents]
 
@@ -45,7 +45,7 @@ sources:
 
 # Related
 
-* [Package (0.10)](package.md)
+* [Package (0.11)](package.md)
 * [Helpers → Device → posix](../architecture/helpers-device-posix.md)
 
 [^readme]: Bindings role; ext-posi dependency

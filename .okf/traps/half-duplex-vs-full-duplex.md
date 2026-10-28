@@ -37,7 +37,7 @@ True **full-duplex** (byte-for-byte correspondence between TX and RX) requires `
 # Related
 
 * [Helpers → Device → posix](../architecture/helpers-device-posix.md)
-* [Package (0.10)](../orientation/package.md)
+* [Package (0.11)](../orientation/package.md)
 
 [^readme]: Half-duplex vs full-duplex notes
 [^device]: spiRead/spiWrite vs spiTransfer

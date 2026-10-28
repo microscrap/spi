@@ -38,7 +38,7 @@ This package’s procedural helper is `spi_transfer(SPIDevice $dev, …)`. Calli
 
 # Mitigation
 
-- Ensure **ext-posi** `^0.10.0` is loaded; it provides `posi_mem_*` for when no native int-first `spi_transfer` exists.[^readme]
+- Ensure **ext-posi** `^0.11.0` is loaded; it provides `posi_mem_*` for when no native int-first `spi_transfer` exists.[^readme]
 - When adding or diagnosing a native extension helper, keep the first argument as `int $fd` — that is what the Reflection gate looks for.[^device]
 - Do not “fix” transfers by having `Device` call the global helper without the type check.
 

@@ -1,9 +1,9 @@
 ---
 type: Orientation
-title: Package (0.10)
-description: "microscrap/spi 0.10.0 — Linux spidev PHP bindings over ext-posi; no ServiceProvider."
+title: Package (0.11)
+description: "microscrap/spi 0.11.0 — Linux spidev PHP bindings over ext-posi; no ServiceProvider."
 resource: .
-tags: [orientation, spi, spidev, microscrap, bindings, 0.10]
+tags: [orientation, spi, spidev, microscrap, bindings, 0.11]
 generated: { by: "okf-documentation-generator/cursor", at: "2026-08-10T22:04:00Z" }
 status: draft
 sources:
@@ -12,7 +12,7 @@ sources:
     title: Package name, namespace, require, suggest, autoload
   - id: readme
     resource: README.md
-    title: Package README (0.10.x requirements and surface)
+    title: Package README (0.11.x requirements and surface)
   - id: helpers
     resource: src/Helpers/spi-device.php
     title: Global helper autoload file
@@ -23,16 +23,16 @@ sources:
 
 # What it is
 
-Composer package `microscrap/spi` at **0.10.0** — PHP helpers, enums, and data objects wrapping Linux `spidev` over [**php-io-extensions/posi**](https://github.com/php-io-extensions/posi) (`ext-posi`).[^readme][^composer]
+Composer package `microscrap/spi` at **0.11.0** — PHP helpers, enums, and data objects wrapping Linux `spidev` over [**php-io-extensions/posi**](https://github.com/php-io-extensions/posi) (`ext-posi`).[^readme][^composer]
 
 | Field | Value |
 |-------|-------|
 | Name | `microscrap/spi`[^composer] |
-| Version | `0.10.0`[^composer] |
-| PHP | `^8.4\|^8.5\|^8.6`[^composer] |
+| Version | `0.11.0`[^composer] |
+| PHP | `~8.4.27\|\|^8.5.12`[^composer] |
 | Namespace | `Microscrap\Bindings\SPI\` → `src/`[^composer] |
-| Require | `ext-posi` `^0.10.0` (only requirement besides `php`)[^composer] |
-| Suggest | `scrapyard-io/framework` `^0.10.0`[^composer] |
+| Require | `ext-posi` `^0.11.0` (only requirement besides `php`)[^composer] |
+| Suggest | `scrapyard-io/framework` `^0.11.0`[^composer] |
 | Homepage | Ecosystem docs overview (see [Ecosystem docs](ecosystem-docs.md))[^readme] |
 | Discovery | **None** — no provider / Chassis registration in this package[^agents] |
 | Role | Bindings layer only (global helpers + enums + data objects)[^agents][^readme] |
@@ -67,6 +67,6 @@ Autoloads `src/Helpers/spi-device.php` (each helper guarded with `function_exist
 | Transfer trap | [Native `spi_transfer` vs `posi_mem`](../traps/spi-transfer-native-vs-posi-mem.md) |
 
 [^composer]: Package name, namespace, require, suggest, autoload
-[^readme]: Package README (0.10.x requirements and surface)
+[^readme]: Package README (0.11.x requirements and surface)
 [^helpers]: Global helper autoload file
 [^agents]: Agent rules for this package
